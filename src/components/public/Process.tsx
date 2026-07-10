@@ -148,6 +148,11 @@ export default function Process() {
                         <span className="flow-step-btn-short">{step.short}</span>
                       </div>
                     </button>
+                    {activeFlowStep === index && (
+                      <div className="flow-step-mobile-detail">
+                        <p>{step.detail}</p>
+                      </div>
+                    )}
                     {index < flowSteps.length - 1 && (
                       <div className="flow-connector">
                         <span className="flow-connector-line">│</span>

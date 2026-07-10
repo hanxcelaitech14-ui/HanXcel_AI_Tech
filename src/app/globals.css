@@ -1899,6 +1899,21 @@ h6 {
   color: var(--text-secondary);
 }
 
+.flow-step-mobile-detail {
+  display: none;
+  width: 100%;
+  max-width: 480px;
+  margin-top: 12px;
+  padding: 16px 20px;
+  background: rgba(var(--color-primary-rgb), 0.05);
+  border: 1px dashed rgba(var(--color-primary-rgb), 0.3);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  animation: flowDetailFadeIn 0.3s ease;
+}
+
 .flow-connector {
   display: flex;
   justify-content: center;
@@ -4050,7 +4065,11 @@ h6 {
   }
 
   .flow-detail-card-container {
-    position: static;
+    display: none;
+  }
+
+  .flow-step-mobile-detail {
+    display: block;
   }
 
   .flow-section {
