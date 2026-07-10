@@ -32,6 +32,12 @@ export default function AdminSettings() {
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [adminEmail, setAdminEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [accountSaving, setAccountSaving] = useState(false);
+  const [accountSavedMsg, setAccountSavedMsg] = useState('');
+  const [accountErrorMsg, setAccountErrorMsg] = useState('');
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -48,6 +54,13 @@ export default function AdminSettings() {
         });
       }
     };
+    
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) {
+        setAdminEmail(data.user.email || '');
+      }
+    });
+
     fetchSettings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -68,6 +81,51 @@ export default function AdminSettings() {
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
+  };
+
+  const handleUpdateAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAccountSaving(true);
+    setAccountSavedMsg('');
+    setAccountErrorMsg('');
+
+    if (newPassword && newPassword !== confirmPassword) {
+      setAccountErrorMsg('Passwords do not match');
+      setAccountSaving(false);
+      return;
+    }
+
+    try {
+      const updates: { email?: string; password?: string } = {};
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user && adminEmail !== user.email) {
+        updates.email = adminEmail;
+      }
+      
+      if (newPassword) {
+        updates.password = newPassword;
+      }
+
+      if (Object.keys(updates).length === 0) {
+        setAccountErrorMsg('No changes specified for email or password');
+        setAccountSaving(false);
+        return;
+      }
+
+      const { error } = await supabase.auth.updateUser(updates);
+      if (error) {
+        setAccountErrorMsg(error.message);
+      } else {
+        setAccountSavedMsg('Account details updated successfully!' + (updates.email ? ' A confirmation link has been sent to your new email.' : ''));
+        setNewPassword('');
+        setConfirmPassword('');
+      }
+    } catch (err: any) {
+      setAccountErrorMsg(err.message || 'An error occurred during update');
+    } finally {
+      setAccountSaving(false);
+    }
   };
 
   const updateCompany = (key: string, val: string) => {
@@ -164,7 +222,7 @@ export default function AdminSettings() {
         </div>
 
         {/* SEO */}
-        <div className="admin-table-wrapper">
+        <div className="admin-table-wrapper" style={{ marginBottom: 24 }}>
           <div className="admin-table-header">
             <h3>🔍 SEO Settings</h3>
           </div>
@@ -183,7 +241,63 @@ export default function AdminSettings() {
             </div>
           </div>
         </div>
+
+        {/* Admin Account Settings */}
+        <div className="admin-table-wrapper">
+          <div className="admin-table-header">
+            <h3>🔑 Admin Account Settings</h3>
+          </div>
+          <form onSubmit={handleUpdateAccount} style={{ padding: 24 }}>
+            {accountSavedMsg && <div style={{ color: '#28c840', background: 'rgba(40, 200, 64, 0.1)', border: '1px solid rgba(40, 200, 64, 0.2)', padding: 12, borderRadius: 8, marginBottom: 16, fontSize: '0.88rem' }}>{accountSavedMsg}</div>}
+            {accountErrorMsg && <div style={{ color: '#ff5f57', background: 'rgba(255, 95, 87, 0.1)', border: '1px solid rgba(255, 95, 87, 0.2)', padding: 12, borderRadius: 8, marginBottom: 16, fontSize: '0.88rem' }}>{accountErrorMsg}</div>}
+
+            <div className="form-group">
+              <label className="form-label">Admin Email Address</label>
+              <input 
+                className="form-input" 
+                type="email" 
+                value={adminEmail} 
+                onChange={(e) => setAdminEmail(e.target.value)} 
+                required 
+              />
+            </div>
+            
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">New Password</label>
+                <input 
+                  className="form-input" 
+                  type="password" 
+                  value={newPassword} 
+                  onChange={(e) => setNewPassword(e.target.value)} 
+                  placeholder="Leave blank to keep current" 
+                  minLength={6}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Confirm New Password</label>
+                <input 
+                  className="form-input" 
+                  type="password" 
+                  value={confirmPassword} 
+                  onChange={(e) => setConfirmPassword(e.target.value)} 
+                  placeholder="Leave blank to keep current" 
+                />
+              </div>
+            </div>
+
+            <button
+              className="btn btn-primary"
+              type="submit"
+              disabled={accountSaving}
+              style={{ marginTop: 8, padding: '10px 24px', fontSize: '0.85rem' }}
+            >
+              {accountSaving ? 'Updating...' : 'Update Account Info'}
+            </button>
+          </form>
+        </div>
       </div>
     </>
   );
 }
+

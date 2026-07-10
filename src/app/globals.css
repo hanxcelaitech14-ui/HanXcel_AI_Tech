@@ -3413,6 +3413,14 @@ h6 {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
+.admin-stat-card.dragging,
+.admin-table-wrapper.dragging {
+  opacity: 0.4;
+  border: 1px dashed var(--color-primary) !important;
+  transform: scale(0.98);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
 .admin-stat-card:hover::before {
   opacity: 1;
 }
