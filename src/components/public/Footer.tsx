@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { validateEmail } from '@/lib/validateEmail';
 
 export default function Footer() {
   const [email, setEmail] = useState('');
@@ -17,11 +18,11 @@ export default function Footer() {
     e.preventDefault();
     if (!email) return;
 
-    // Simple email regex validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    // Strict email validation
+    const emailCheck = validateEmail(email);
+    if (!emailCheck.valid) {
       setStatus('error');
-      setMessage('Please enter a valid email address.');
+      setMessage(emailCheck.error);
       return;
     }
 

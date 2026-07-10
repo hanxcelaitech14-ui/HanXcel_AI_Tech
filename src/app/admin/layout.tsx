@@ -29,7 +29,7 @@ const navGroups = [
     items: [
       { icon: '📩', label: 'Inquiries', href: '/admin/inquiries' },
       { icon: '✉️', label: 'Messages', href: '/admin/messages' },
-      { icon: '🤖', label: 'Chatbot AI', href: '/admin/chatbot' },
+      { icon: '🤖', label: 'Chatbot & Logs', href: '/admin/chatbot' },
     ],
   },
 ];

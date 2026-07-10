@@ -39,6 +39,12 @@ export default function AdminSettings() {
   const [accountSavedMsg, setAccountSavedMsg] = useState('');
   const [accountErrorMsg, setAccountErrorMsg] = useState('');
 
+  // SMTP Settings
+  const [smtpEmail, setSmtpEmail] = useState('');
+  const [smtpPassword, setSmtpPassword] = useState('');
+  const [reportEmail, setReportEmail] = useState('');
+  const [reportTime, setReportTime] = useState('18:00');
+
   useEffect(() => {
     const fetchSettings = async () => {
       const { data } = await supabase.from('site_settings').select('*');
@@ -52,6 +58,13 @@ export default function AdminSettings() {
           social: (mapped.social as Settings['social']) || settings.social,
           seo: (mapped.seo as Settings['seo']) || settings.seo,
         });
+
+        // Load SMTP & Report configurations
+        const clean = (val: unknown) => typeof val === 'string' ? val.replace(/^"|"$/g, '') : '';
+        if (mapped.smtp_email) setSmtpEmail(clean(mapped.smtp_email));
+        if (mapped.smtp_password) setSmtpPassword(clean(mapped.smtp_password));
+        if (mapped.chatbot_report_email) setReportEmail(clean(mapped.chatbot_report_email));
+        if (mapped.chatbot_report_time) setReportTime(clean(mapped.chatbot_report_time) || '18:00');
       }
     };
     
@@ -71,6 +84,10 @@ export default function AdminSettings() {
       { key: 'company', value: settings.company },
       { key: 'social', value: settings.social },
       { key: 'seo', value: settings.seo },
+      { key: 'smtp_email', value: smtpEmail },
+      { key: 'smtp_password', value: smtpPassword },
+      { key: 'chatbot_report_email', value: reportEmail },
+      { key: 'chatbot_report_time', value: reportTime },
     ];
 
     for (const u of updates) {
@@ -238,6 +255,175 @@ export default function AdminSettings() {
             <div className="form-group">
               <label className="form-label">Keywords</label>
               <input className="form-input" value={settings.seo.keywords} onChange={(e) => updateSEO('keywords', e.target.value)} placeholder="Comma-separated keywords" />
+            </div>
+          </div>
+        </div>
+
+        {/* Email Server & Report Settings */}
+        <div className="admin-table-wrapper" style={{ marginBottom: 24 }}>
+          <div className="admin-table-header">
+            <h3>📧 Email Server & Report Settings</h3>
+          </div>
+          <div style={{ padding: 24 }}>
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Gmail Address (Sender)</label>
+                <input
+                  className="form-input"
+                  type="email"
+                  value={smtpEmail}
+                  onChange={(e) => setSmtpEmail(e.target.value)}
+                  placeholder="yourname@gmail.com"
+                />
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: 4, display: 'block' }}>
+                  Gmail account used to send chatbot Q&A reports
+                </span>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Gmail App Password</label>
+                <input
+                  className="form-input"
+                  type="password"
+                  value={smtpPassword}
+                  onChange={(e) => setSmtpPassword(e.target.value)}
+                  placeholder="xxxx xxxx xxxx xxxx"
+                />
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: 4, display: 'block' }}>
+                  <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)' }}>Generate App Password</a> — requires 2-Step Verification enabled
+                </span>
+              </div>
+            </div>
+            <div className="form-row" style={{ marginTop: 12 }}>
+              <div className="form-group">
+                <label className="form-label">Recipient Email</label>
+                <input
+                  className="form-input"
+                  type="email"
+                  value={reportEmail}
+                  onChange={(e) => setReportEmail(e.target.value)}
+                  placeholder="admin@company.com"
+                />
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: 4, display: 'block' }}>
+                  Daily chatbot Q&A report will be sent to this email
+                </span>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Auto-Send Time (24hr)</label>
+                <input
+                  className="form-input"
+                  type="time"
+                  value={reportTime}
+                  onChange={(e) => setReportTime(e.target.value)}
+                />
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: 4, display: 'block' }}>
+                  Report auto-sends daily at this time (when admin panel is open)
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Email Server & Report Settings */}
+        <div className="admin-table-wrapper" style={{ marginBottom: 24 }}>
+          <div className="admin-table-header">
+            <h3>📧 Email Server & Report Settings</h3>
+          </div>
+          <div style={{ padding: 24 }}>
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Gmail Sender Email</label>
+                <input
+                  className="form-input"
+                  type="email"
+                  value={smtpEmail}
+                  onChange={(e) => setSmtpEmail(e.target.value)}
+                  placeholder="sender@gmail.com"
+                />
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: 4, display: 'block' }}>
+                  Gmail address used to send reports
+                </span>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Gmail App Password</label>
+                <input
+                  className="form-input"
+                  type="password"
+                  value={smtpPassword}
+                  onChange={(e) => setSmtpPassword(e.target.value)}
+                  placeholder="xxxx xxxx xxxx xxxx"
+                />
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: 4, display: 'block' }}>
+                  Gmail App Password generated in Google account settings
+                </span>
+              </div>
+            </div>
+            <div className="form-row" style={{ marginTop: 12 }}>
+              <div className="form-group">
+                <label className="form-label">Recipient Email</label>
+                <input
+                  className="form-input"
+                  type="email"
+                  value={reportEmail}
+                  onChange={(e) => setReportEmail(e.target.value)}
+                  placeholder="recipient@company.com"
+                />
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: 4, display: 'block' }}>
+                  Email address to receive the daily chatbot Q&A logs
+                </span>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Daily Auto-Send Time (24h)</label>
+                <input
+                  className="form-input"
+                  type="time"
+                  value={reportTime}
+                  onChange={(e) => setReportTime(e.target.value)}
+                />
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: 4, display: 'block' }}>
+                  Time of day when report auto-sends
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Email Server & Report Settings */}
+        <div className="admin-table-wrapper" style={{ marginBottom: 24 }}>
+          <div className="admin-table-header">
+            <h3>📧 Email Server & Report Settings</h3>
+          </div>
+          <div style={{ padding: 24 }}>
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Gmail Sender Email</label>
+                <input className="form-input" type="email" value={smtpEmail} onChange={(e) => setSmtpEmail(e.target.value)} placeholder="sender@gmail.com" />
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: 4, display: 'block' }}>
+                  Gmail address used to send reports
+                </span>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Gmail App Password</label>
+                <input className="form-input" type="password" value={smtpPassword} onChange={(e) => setSmtpPassword(e.target.value)} placeholder="xxxx xxxx xxxx xxxx" />
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: 4, display: 'block' }}>
+                  Gmail App Password generated in Google account settings
+                </span>
+              </div>
+            </div>
+            <div className="form-row" style={{ marginTop: 12 }}>
+              <div className="form-group">
+                <label className="form-label">Recipient Email</label>
+                <input className="form-input" type="email" value={reportEmail} onChange={(e) => setReportEmail(e.target.value)} placeholder="recipient@company.com" />
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: 4, display: 'block' }}>
+                  Email address to receive the daily chatbot Q&A logs
+                </span>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Daily Auto-Send Time (24h)</label>
+                <input className="form-input" type="time" value={reportTime} onChange={(e) => setReportTime(e.target.value)} />
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: 4, display: 'block' }}>
+                  Time of day when report auto-sends
+                </span>
+              </div>
             </div>
           </div>
         </div>

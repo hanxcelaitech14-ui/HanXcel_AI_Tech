@@ -6,7 +6,7 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json();
+    const { messages, sessionId } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json({ error: 'Invalid messages format' }, { status: 400 });
@@ -79,6 +79,16 @@ Avoid making up any fake products, prices, or claims. Keep responses under 3 sen
 
     const data = await response.json();
     const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'I apologize, but I could not process that request.';
+
+    // 4. Store the Q&A pair in chatbot_conversations
+    const lastUserMessage = [...messages].reverse().find((m: any) => m.role === 'user');
+    if (lastUserMessage) {
+      await supabase.from('chatbot_conversations').insert({
+        session_id: sessionId || 'anonymous',
+        question: lastUserMessage.content,
+        answer: reply,
+      });
+    }
 
     return NextResponse.json({ reply });
   } catch (error: any) {

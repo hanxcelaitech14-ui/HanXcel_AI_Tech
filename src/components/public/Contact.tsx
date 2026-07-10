@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { validateEmail } from '@/lib/validateEmail';
 import ScrollReveal from './ScrollReveal';
 
 interface CompanyInfo {
@@ -23,6 +24,7 @@ export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
 
   // Dynamic company info from admin settings
   const [company, setCompany] = useState<CompanyInfo>({
@@ -60,6 +62,14 @@ export default function Contact() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setEmailError('');
+
+    const emailCheck = validateEmail(form.email);
+    if (!emailCheck.valid) {
+      setEmailError(emailCheck.error);
+      return;
+    }
+
     setLoading(true);
     await supabase.from('contact_submissions').insert(form);
     setLoading(false);
@@ -161,7 +171,8 @@ export default function Contact() {
                     </div>
                     <div className="form-group">
                       <label className="form-label">Email *</label>
-                      <input className="form-input" type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="your@email.com" />
+                      <input className="form-input" type="email" required value={form.email} onChange={(e) => { setForm({ ...form, email: e.target.value }); setEmailError(''); }} placeholder="your@email.com" style={emailError ? { borderColor: '#ff5f57' } : {}} />
+                      {emailError && <span style={{ color: '#ff5f57', fontSize: '0.82rem', marginTop: 4, display: 'block' }}>{emailError}</span>}
                     </div>
                   </div>
                   <div className="form-row">

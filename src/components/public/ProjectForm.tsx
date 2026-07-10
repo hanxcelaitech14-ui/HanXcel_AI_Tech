@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { validateEmail } from '@/lib/validateEmail';
 import ScrollReveal from './ScrollReveal';
 
 const stepLabels = ['Personal', 'Project', 'Requirements', 'Files', 'Services', 'Review'];
@@ -14,11 +15,24 @@ export default function ProjectForm() {
   const [project, setProject] = useState({ type: 'Web Application', budget: '', timeline: '' });
   const [requirements, setRequirements] = useState({ description: '', features: [] as string[] });
   const [services, setServices] = useState<string[]>([]);
+  const [emailError, setEmailError] = useState('');
 
   const featureOptions = ['AI/ML Integration', 'User Authentication', 'Payment Gateway', 'Real-time Chat', 'Dashboard/Analytics', 'Mobile App', 'API Development', 'Cloud Hosting'];
   const serviceOptions = ['UI/UX Design', 'SEO Optimization', 'Maintenance & Support', 'DevOps Setup', 'Security Audit', 'Training & Documentation'];
 
-  const nextStep = () => setStep((s) => Math.min(s + 1, 5));
+  const nextStep = () => {
+    // Validate email on Personal step before proceeding
+    if (step === 0) {
+      if (!personal.name.trim()) return;
+      const emailCheck = validateEmail(personal.email);
+      if (!emailCheck.valid) {
+        setEmailError(emailCheck.error);
+        return;
+      }
+      setEmailError('');
+    }
+    setStep((s) => Math.min(s + 1, 5));
+  };
   const prevStep = () => setStep((s) => Math.max(s - 1, 0));
 
   const toggleFeature = (f: string) => {
@@ -96,7 +110,8 @@ export default function ProjectForm() {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Email *</label>
-                  <input className="form-input" type="email" value={personal.email} onChange={(e) => setPersonal({ ...personal, email: e.target.value })} placeholder="john@company.com" />
+                  <input className="form-input" type="email" value={personal.email} onChange={(e) => { setPersonal({ ...personal, email: e.target.value }); setEmailError(''); }} placeholder="john@company.com" style={emailError ? { borderColor: '#ff5f57' } : {}} />
+                  {emailError && <span style={{ color: '#ff5f57', fontSize: '0.82rem', marginTop: 4, display: 'block' }}>{emailError}</span>}
                 </div>
               </div>
               <div className="form-row">

@@ -14,6 +14,16 @@ export default function Chatbot() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [sessionId] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const existing = sessionStorage.getItem('hanxcel-chat-session');
+      if (existing) return existing;
+      const id = `session_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+      sessionStorage.setItem('hanxcel-chat-session', id);
+      return id;
+    }
+    return 'anonymous';
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -41,7 +51,7 @@ export default function Chatbot() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ messages: newMessages }),
+        body: JSON.stringify({ messages: newMessages, sessionId }),
       });
 
       const data = await response.json();
